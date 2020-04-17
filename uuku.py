@@ -74,8 +74,19 @@ for file in last_ver_parser.files:
     print("Fetching: ", dst_file)
     urlretrieve("https://kernel.ubuntu.com/~kernel-ppa/mainline/v{}/{}".format(
         last_ver, file), dst_file)
-for file in last_ver_parser.files:
-    dst_file = filename = "{}/{}".format(dirpath, file)
-    print("Installing: ", dst_file)
-    run_res = subprocess.run(["sudo", "dpkg", "-i", dst_file])
+installation_order = ["linux-headers", "linux-modules", "linux-image"]
+for file_prefix in installation_order:
+    files = [f for f in last_ver_parser.files if f.startswith(file_prefix)]
+    for file in files:
+        dst_file = filename = "{}/{}".format(dirpath, file)
+        print("Installing: ", dst_file)
+        run_res = subprocess.run(["sudo", "dpkg", "-i", dst_file])
 shutil.rmtree(dirpath)
+
+for file in last_ver_parser.files:
+    if file.startswith("linux-image"):
+        image_name = "/boot/vmlinuz-" + \
+            "-".join(file.split("_")[0].split("-")[3:])
+        print("Singing kernel image: " + image_name)
+        subprocess.run(["sudo", "sbsign", "--key", "/root/mok/MOK.priv", "--cert",
+                        "/root/mok/MOK.pem", image_name, "--output", image_name])
