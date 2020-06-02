@@ -54,6 +54,8 @@ index_parser.feed(str(index.content, 'utf-8'))
 sorted_vers = sorted(
     index_parser.versions, key=lambda s: list(map(int, s.split('.'))))
 last_ver = sorted_vers[-1]
+if len(last_ver.split(".")) == 2:
+    last_ver += ".0"
 print("Last kernel version found: ", last_ver)
 
 run_res = subprocess.run(["uname", "-r"], capture_output=True)
