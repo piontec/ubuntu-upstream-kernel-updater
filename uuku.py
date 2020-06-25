@@ -9,6 +9,8 @@ from urllib import request
 from urllib.request import urlretrieve
 
 
+release_key = "60AA 7B6F 3043 4AE6 8E56  9963 E50C 6A09 17C6 22B0"
+
 class VersionIndexHTMLParser(HTMLParser):
     def __init__(self, prefix, *, convert_charrefs=True):
         super().__init__(convert_charrefs=convert_charrefs)
@@ -102,6 +104,12 @@ for file in last_ver_parser.files:
     if not file + ": OK" in check_results:
         print(f"Checksum validation failed for file: {file}")
         sys.exit(3)
+run_res = subprocess.run([f"gpg -k | grep '{release_key}'"], shell=True)
+if run_res.returncode != 0:
+    print("Fetching GPG release key")
+    subprocess.run(["gpg", "--keyserver", "pool.sks-keyservers.net", "--recv-key", release_key])
+print("Validating CHECKSUM file signature")
+subprocess.run(["gpg", "--verify", "CHECKSUMS.gpg", "CHECKSUMS"], cwd=dirpath, check=True)
 
 # install
 installation_order = ["linux-headers-.*_all", f"linux-headers-.*-{args.flavor}", f"linux-modules.*-{args.flavor}",
@@ -121,4 +129,4 @@ if args.sign != "":
                          "-".join(file.split("_")[0].split("-")[3:])
             print("Singing kernel image: " + image_name)
             subprocess.run(["sudo", "sbsign", "--key", f"{args.sign}/MOK.priv", "--cert",
-                            f"{args.sign}/MOK.pem", image_name, "--output", image_name])
+                            f"{args.sign}/MOK.pem", image_name, "--output", image_name], check=True)
