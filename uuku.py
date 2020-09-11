@@ -10,6 +10,7 @@ from urllib.request import urlretrieve
 
 
 release_key = "60AA 7B6F 3043 4AE6 8E56  9963 E50C 6A09 17C6 22B0"
+ver = "0.1.3"
 
 class VersionIndexHTMLParser(HTMLParser):
     def __init__(self, prefix, *, convert_charrefs=True):
@@ -54,11 +55,11 @@ class SingleVerHTMLParser(HTMLParser):
         sys.exit(2)
 
 
-parser = argparse.ArgumentParser(description="Install upstream ubuntu kernel")
+parser = argparse.ArgumentParser(description=f"Ubuntu Upstream Kernel Updater v{ver}")
 parser.add_argument("-p", "--prefix", type=str, help="Install only from release versions matching the prefix.")
 parser.add_argument("-a", "--arch", type=str, help="Use kernel for specific architecture (default: amd64).",
                     default="amd64")
-parser.add_argument("-f", "--flavor", type=str, help="Use kernel for of specific flavor (default: generic)",
+parser.add_argument("-f", "--flavor", type=str, help="Use kernel of specific flavor (default: generic)",
                     default="generic", choices=["generic", "lowlatency"])
 parser.add_argument("-s", "--sign", type=str, help="Sign the kernel image after installing. This needs to be a path" +
                                                    " to a directory with 'MOK.priv' and 'MOK.pem' files. 'sudo' and" +
@@ -122,7 +123,7 @@ for file_prefix_regexp in [re.compile(x) for x in installation_order]:
         run_res = subprocess.run(["sudo", "dpkg", "-i", dst_file])
 shutil.rmtree(dirpath)
 
-if args.sign != "":
+if args.sign is not None and args.sign != "":
     for file in downloaded:
         if file.startswith("linux-image"):
             image_name = "/boot/vmlinuz-" + \
