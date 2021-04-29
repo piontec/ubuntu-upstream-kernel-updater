@@ -132,3 +132,4 @@ if args.sign is not None and args.sign != "":
             print("Singing kernel image: " + image_name)
             subprocess.run(["sudo", "sbsign", "--key", f"{args.sign}/MOK.priv", "--cert",
                             f"{args.sign}/MOK.pem", image_name, "--output", image_name], check=True)
+subprocess.run(["sudo", "apt-get", "install", "-f"])
