@@ -70,8 +70,9 @@ with request.urlopen('https://kernel.ubuntu.com/~kernel-ppa/mainline/') as respo
     index = response.read()
 index_parser = VersionIndexHTMLParser(args.prefix)
 index_parser.feed(str(index, 'utf-8'))
-sorted_vers = sorted(index_parser.versions, key=lambda s: list(map(int, s.split('.'))))
-last_ver = sorted_vers[-1]
+sorted_vars = sorted(index_parser.versions, key=lambda s: list(map(int, s.split('.'))))
+last_ver = sorted_vars[-1]
+dir_ver = last_ver
 if len(last_ver.split(".")) == 2:
     last_ver += ".0"
 print("Last kernel version found: ", last_ver)
@@ -83,7 +84,7 @@ if last_ver == local_ver:
     "You're already on the latest version, nothing to do"
     sys.exit(0)
 
-with request.urlopen(f"https://kernel.ubuntu.com/~kernel-ppa/mainline/v{last_ver}/{args.arch}/") as response:
+with request.urlopen(f"https://kernel.ubuntu.com/~kernel-ppa/mainline/v{dir_ver}/{args.arch}/") as response:
     last_ver_page = response.read()
 last_ver_parser = SingleVerHTMLParser(args.arch, args.flavor, last_ver)
 last_ver_parser.feed(str(last_ver_page, 'utf-8'))
@@ -94,7 +95,7 @@ for file in last_ver_parser.files + ["CHECKSUMS", "CHECKSUMS.gpg"]:
     filename = file[len(args.arch) + 1:] if file.startswith(args.arch) else file
     dst_file = f"{dirpath}/{filename}"
     print("Fetching: ", dst_file)
-    urlretrieve(f"https://kernel.ubuntu.com/~kernel-ppa/mainline/v{last_ver}/{args.arch}/{file}", dst_file)
+    urlretrieve(f"https://kernel.ubuntu.com/~kernel-ppa/mainline/v{dir_ver}/{args.arch}/{file}", dst_file)
     downloaded.append(filename)
 
 # validate
